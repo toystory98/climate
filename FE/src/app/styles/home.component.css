@@ -1,0 +1,10 @@
+.btn{
+    margin: 10px;
+    width: 100px;
+    height: 80px;
+    background-color: darksalmon;
+}
+
+.btn:hover{
+    background-color: dodgerblue;
+}
