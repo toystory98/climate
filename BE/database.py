@@ -8,30 +8,8 @@ db = client['test']
 def getmonth(station, month, year):
     l = []
     query = db.testfile.find({ "$and" : [{ "month" : int(month) }, { "year" : int(year) } ] } ,{station:1})
-#     query = db.testfile.aggregate([
-#         { "$replaceWith": { "$mergeObjects": [ { _id: "$"+station, first: "", last: "" }, "$station" ] } }
-#     ])
-#     query = db.testfile.aggregate(
-#    [
-#       {
-#         "$project": {
-#         station: 1,
-#         station: { "$ifNull": [ "$"+station, "Unspecified" ] }
-#         }
-#       }
-#    ]
-# )
     for data in query:
         l.append(data[station])
-
-    # db.testfile.updateMany(
-    #     { URL: { $regex: /helloWorldt/ } },
-    #     [{
-    #         $set: { URL: {
-    #         $replaceOne: { input: "$URL", find: "helloWorldt", replacement: "helloWorld" }
-    #     }}
-    # }]
-    # )
     return l
 
 def listStation():
@@ -55,13 +33,14 @@ def listDuplicate(columnName):
     return result
 
 def getmonthrange():
+    l = []
     station = "300201"
     from_date = 2012
     to_date = 2013
-    l = []
-    for post in db.testfile.find({"year": {"$gte": from_date, "$lt": to_date}  } ,{station:1}):
-        l.append(post[station])
-
+    select_year = db.testfile.find({"year": {"$gte": from_date, "$lt": to_date}  } ,{station:1})
+    for data in select_year:
+        l.append(data)
     return l
+
 # print(getmonth("432301","9","2013"))
-# print(getmonthrange())
+print(getmonthrange())
