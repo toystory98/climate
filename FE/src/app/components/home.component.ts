@@ -1,13 +1,6 @@
 import { Component, OnInit } from '@angular/core';
+import {NgbDate, NgbCalendar, NgbDateParserFormatter} from '@ng-bootstrap/ng-bootstrap';
 import { HomeService } from '../services/home.service';
-import Map from 'ol/Map';
-import View from 'ol/View';
-import VectorLayer from 'ol/layer/Vector';
-import Style from 'ol/style/Style';
-import Icon from 'ol/style/Icon';
-import OSM from 'ol/source/OSM';
-import * as olProj from 'ol/proj';
-import TileLayer from 'ol/layer/Tile';
 
 
 @Component({
@@ -16,76 +9,47 @@ import TileLayer from 'ol/layer/Tile';
   styleUrls: ['../styles/home.component.css'],
   providers: [HomeComponent],
 })
-export class HomeComponent implements OnInit {
-  constructor(private homeService: HomeService) {}
+export class HomeComponent{
+  hoveredDate: NgbDate | null = null;
 
-  ngOnInit(): void {
-    this.getDay();
-    this.getMonth();
-    this.getYear();
-    this.getStation();
+  fromDate: NgbDate | null;
+  toDate: NgbDate | null;
+
+  constructor(private calendar: NgbCalendar, public formatter: NgbDateParserFormatter) {
+    this.fromDate = calendar.getToday();
+    this.toDate = calendar.getNext(calendar.getToday(), 'd', 10);
   }
 
-  selectedStation = 'select station';
-  selectedMonth = 'select month';
-  selectedYear = 'select year';
-
-  listdata = [];
-  d =[];
-  listYear = [];
-  listMonth = [];
-  listDay = [];
-  listStation = [];
-
-  show() {
-    this.queryData();
-    console.log(this.listdata);
+  show(){
+    console.log("from date: ",this.fromDate);
+    console.log("to date: ",this.toDate);
   }
 
-  queryData() {
-    this.listdata = [];
-    this.homeService
-      .queryData(this.selectedStation, this.selectedMonth, this.selectedYear)
-      .subscribe((data) => {
-        data['result'].map((v) => {
-          this.listdata.push(v);
-        });
-      });
+  onDateSelection(date: NgbDate) {
+    if (!this.fromDate && !this.toDate) {
+      this.fromDate = date;
+    } else if (this.fromDate && !this.toDate && date && date.after(this.fromDate)) {
+      this.toDate = date;
+    } else {
+      this.toDate = null;
+      this.fromDate = date;
+    }
   }
 
-  getDay() {
-    this.listDay = [];
-    this.homeService.listDMY('day').subscribe((data) => {
-      data['result'].map((v) => {
-        this.listDay.push(v);
-      });
-    });
+  isHovered(date: NgbDate) {
+    return this.fromDate && !this.toDate && this.hoveredDate && date.after(this.fromDate) && date.before(this.hoveredDate);
   }
 
-  getMonth() {
-    this.listMonth = [];
-    this.homeService.listDMY('month').subscribe((data) => {
-      data['result'].map((v) => {
-        this.listMonth.push(v);
-      });
-    });
+  isInside(date: NgbDate) {
+    return this.toDate && date.after(this.fromDate) && date.before(this.toDate);
   }
 
-  getYear() {
-    this.listYear = [];
-    this.homeService.listDMY('year').subscribe((data) => {
-      data['result'].map((v) => {
-        this.listYear.push(v);
-      });
-    });
+  isRange(date: NgbDate) {
+    return date.equals(this.fromDate) || (this.toDate && date.equals(this.toDate)) || this.isInside(date) || this.isHovered(date);
   }
 
-  getStation(){
-    this.listStation = [];
-    this.homeService.listStation().subscribe((data) => {
-      data["result"].map((v) => {
-        this.listStation.push(v);
-      });
-    });
+  validateInput(currentValue: NgbDate | null, input: string): NgbDate | null {
+    const parsed = this.formatter.parse(input);
+    return parsed && this.calendar.isValid(NgbDate.from(parsed)) ? NgbDate.from(parsed) : currentValue;
   }
 }
